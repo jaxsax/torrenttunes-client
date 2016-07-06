@@ -1,5 +1,8 @@
 package com.torrenttunes.client.tools.watchservice;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.Arrays;
@@ -10,17 +13,12 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
-import org.slf4j.LoggerFactory;
-
-
-import org.slf4j.Logger;
-
 import static java.nio.file.StandardWatchEventKinds.*;
 
 /**
  * A simple class which can monitor files and notify interested parties
  * (i.e. listeners) of file changes.
- *
+ * <p/>
  * This class is kept lean by only keeping methods that are actually being
  * called.
  */
@@ -48,7 +46,7 @@ public class SimpleDirectoryWatchService implements DirectoryWatchService, Runna
 
     @SuppressWarnings("unchecked")
     private static <T> WatchEvent<T> cast(WatchEvent<?> event) {
-        return (WatchEvent<T>)event;
+        return (WatchEvent<T>) event;
     }
 
     private static <K, V> ConcurrentMap<K, V> newConcurrentMap() {
@@ -203,7 +201,7 @@ public class SimpleDirectoryWatchService implements DirectoryWatchService, Runna
             } catch (InterruptedException e) {
                 LOGGER.info(
                         DirectoryWatchService.class.getSimpleName()
-                        + " service interrupted."
+                                + " service interrupted."
                 );
                 break;
             }
