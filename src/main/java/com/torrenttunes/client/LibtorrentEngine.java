@@ -59,7 +59,7 @@ public enum LibtorrentEngine {
         Pair<Integer, Integer> prange = new Pair<Integer, Integer>(49154, 65535);
         String iface = "0.0.0.0";
 
-        if (Main.log.getLevel().equals(Level.DEBUG)) {
+        if (Application.log.getLevel().equals(Level.DEBUG)) {
             // Create a session stats file with headers
             createSessionStatsFile();
             default_storage.disk_write_access_log(true);
