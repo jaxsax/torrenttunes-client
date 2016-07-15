@@ -24,39 +24,16 @@ public class Application {
 
     public void main(Arguments args) {
 
-        // See if the user wants to uninstall it
         if (args.isUninstall()) {
-            Tools.uninstall();
+            uninstallApplication();
         }
 
-        log.setLevel(Level.toLevel(args.getLogLevel()));
-        log.getLoggerContext().getLogger("org.eclipse.jetty").setLevel(Level.OFF);
-        log.getLoggerContext().getLogger("spark.webserver").setLevel(Level.OFF);
+        setupLogging(args);
+        installApplication(args);
 
-        // Install Shortcuts
-        Tools.setupDirectories();
+        setupSettings(args);
 
-        Tools.copyResourcesToHomeDir(args.isRecopy());
-
-        Tools.addExternalWebServiceVarToTools();
-
-        InitializeTables.initializeTables();
-
-        if (args.isInstallOnly()) {
-            System.exit(0);
-        }
-
-        if (args.getMaxDownloadSpeed() != null) {
-            DataSources.MAX_DOWNLOAD_SPEED_BYTES = args.getMaxDownloadSpeed() * 1024;
-        }
-
-        setupSettings();
-
-        setCorrectLanguage();
-
-        WebService.start();
-
-        awaitInitialization();
+        startAndAwaitWebService();
 
         if (!args.isNoBrowser()) {
             openHomePage();
@@ -72,11 +49,60 @@ public class Application {
             LibtorrentEngine.INSTANCE.seedExtraDirectory(new File(args.getExtraDirectory()));
             Watcher.watch(args.getExtraDirectory());
         }
-
-
     }
 
-    public static void setCorrectLanguage() {
+    private void startAndAwaitWebService() {
+        WebService.start();
+        awaitInitialization();
+    }
+
+    // TODO: Refactor Tools.uninstall to not exit, we should exit here instead
+    private void uninstallApplication() {
+        Tools.uninstall();
+        System.exit(0);
+    }
+
+    private void setupLogging(Arguments arguments) {
+        log.setLevel(Level.toLevel(arguments.getLogLevel()));
+        log.getLoggerContext().getLogger("org.eclipse.jetty").setLevel(Level.OFF);
+        log.getLoggerContext().getLogger("spark.webserver").setLevel(Level.OFF);
+    }
+
+    private void installApplication(Arguments arguments) {
+
+        Tools.setupDirectories();
+        Tools.copyResourcesToHomeDir(arguments.isRecopy());
+        Tools.addExternalWebServiceVarToTools();
+
+        InitializeTables.initializeTables();
+
+        if (arguments.isInstallOnly()) {
+            System.exit(0);
+        }
+    }
+
+    public static void openHomePage() {
+
+        Tools.openWebpage(DataSources.WEB_SERVICE_URL_HOME);
+    }
+
+    public static void setupSettings(Arguments arguments) {
+        Tools.dbInit();
+        Settings s = SETTINGS.findFirst("id = ?", 1);
+        Tools.dbClose();
+
+        Actions.setupMusicStoragePath(s);
+        Actions.updateLibtorrentSettings(s);
+
+        Integer maxDownloadSpeed = arguments.getMaxDownloadSpeed();
+        if (maxDownloadSpeed != null) {
+            DataSources.MAX_DOWNLOAD_SPEED_BYTES = maxDownloadSpeed;
+        }
+
+        setCorrectLanguage();
+    }
+
+    private static void setCorrectLanguage() {
         String lang2 = Locale.getDefault().getLanguage();
         String lang = System.getProperty("user.language");
         log.info("System language = " + lang + " or Locale language: " + lang2);
@@ -89,21 +115,5 @@ public class Application {
             DataSources.BASE_ENDPOINT = DataSources.MAIN_PAGE_URL_EN();
         }
     }
-
-    public static void openHomePage() {
-
-        Tools.openWebpage(DataSources.WEB_SERVICE_URL_HOME);
-    }
-
-    public static void setupSettings() {
-        Tools.dbInit();
-        Settings s = SETTINGS.findFirst("id = ?", 1);
-        Tools.dbClose();
-
-        Actions.setupMusicStoragePath(s);
-        Actions.updateLibtorrentSettings(s);
-    }
-
-
 
 }
