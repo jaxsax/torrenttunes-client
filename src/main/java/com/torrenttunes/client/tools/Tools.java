@@ -75,13 +75,6 @@ public class Tools {
 
         log.debug("req ip = " + req.ip());
 
-
-        //		res.header("Access-Control-Allow-Origin", "http://mozilla.com");
-        //		res.header("Access-Control-Allow-Origin", "null");
-        //		res.header("Access-Control-Allow-Origin", "*");
-        //		res.header("Access-Control-Allow-Credentials", "true");
-
-
         if (!isLocalIP(req.ip())) {
             throw new NoSuchElementException("Not a local ip, can't access");
         }
@@ -119,10 +112,6 @@ public class Tools {
         log.debug("request origin2: " + origin2);
 
 
-        //		System.out.println("origin = " + origin);
-        //		if (DataSources.ALLOW_ACCESS_ADDRESSES.contains(req.headers("Origin"))) {
-        //			res.header("Access-Control-Allow-Origin", origin);
-        //		}
         for (String header : req.headers()) {
             log.debug("request header | " + header + " : " + req.headers(header));
         }
@@ -152,14 +141,6 @@ public class Tools {
         return postMap;
 
     }
-
-
-    public static FilenameFilter MUSIC_FILE_FILTER = new FilenameFilter() {
-        public boolean accept(File dir, String name) {
-            return name.endsWith(".mp3");
-        }
-    };
-
 
     public static String sha2FileChecksum(File file) {
         HashCode hc = null;
@@ -220,15 +201,6 @@ public class Tools {
                 break;
             }
             out.write(buffer, 0, readCount);
-        }
-    }
-
-    private static void copy(File file, OutputStream out) throws IOException {
-        InputStream in = new FileInputStream(file);
-        try {
-            copy(in, out);
-        } finally {
-            in.close();
         }
     }
 
@@ -325,9 +297,6 @@ public class Tools {
             HttpPost httpPost = new HttpPost(postURL);
             httpPost.setEntity(new StringEntity(jsonInfo, "UTF-8"));
 
-
-            //			httpPost.setEntity(new StringEntity("L"));
-
             ResponseHandler<String> handler = new BasicResponseHandler();
 
 
@@ -362,10 +331,6 @@ public class Tools {
         return s;
     }
 
-    public static String readFile(File file) {
-        return readFile(file.getAbsolutePath());
-    }
-
     public static void writeFile(String text, String path) {
         try {
             java.nio.file.Files.write(Paths.get(path), text.getBytes());
@@ -373,15 +338,6 @@ public class Tools {
             e.printStackTrace();
         }
     }
-
-    public static void writeFile(String text, File filePath) {
-        writeFile(text, filePath.getAbsolutePath());
-    }
-
-    public static Boolean writeFileToResponse(File file, Request req, Response res) {
-        return writeFileToResponse(file.getAbsolutePath(), req, res);
-    }
-
 
     public static Boolean writeFileToResponse(String path, Request req, Response res) {
         try {
@@ -400,24 +356,6 @@ public class Tools {
             e.printStackTrace();
         }
         return true;
-    }
-
-    public static HttpServletResponse writeFileToResponse2(String path, Response res) {
-
-        byte[] encoded;
-        try {
-            encoded = java.nio.file.Files.readAllBytes(Paths.get(path));
-
-
-            ServletOutputStream os = res.raw().getOutputStream();
-            os.write(encoded);
-            os.close();
-
-            return res.raw();
-
-        } catch (IOException e) {
-            throw new NoSuchElementException("Couldn't write response from path: " + path);
-        }
     }
 
     public static void uninstall() {
@@ -456,15 +394,6 @@ public class Tools {
         return null;
     }
 
-    public static String nodeToJsonPretty(JsonNode a) {
-        try {
-            return Tools.MAPPER.writerWithDefaultPrettyPrinter().writeValueAsString(a);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
     public static String humanReadableByteCount(long bytes, boolean si) {
         int unit = si ? 1000 : 1024;
         if (bytes < unit) return bytes + " B";
@@ -496,33 +425,6 @@ public class Tools {
         return res;
     }
 
-    public static final byte[] httpGetBytes(String urlString) throws IOException {
-        URL url = new URL(urlString);
-
-        URLConnection uc = url.openConnection();
-        int len = uc.getContentLength();
-        InputStream is = new BufferedInputStream(uc.getInputStream());
-        try {
-            byte[] data = new byte[len];
-            int offset = 0;
-            while (offset < len) {
-                int read = is.read(data, offset, data.length - offset);
-                if (read < 0) {
-                    break;
-                }
-                offset += read;
-            }
-            if (offset < len) {
-                throw new IOException(
-                        String.format("Read %d bytes; expected %d", offset, len));
-            }
-            return data;
-        } finally {
-            is.close();
-        }
-    }
-
-
     public static final void httpSaveFile(String urlString, String savePath) throws IOException {
         log.info("url string = " + urlString);
 
@@ -542,38 +444,6 @@ public class Tools {
         }
         output.close();
 
-    }
-
-    public static String httpSimplePost(String seederInfoUpload) {
-        String res = "";
-        try {
-            URL externalURL = new URL(seederInfoUpload);
-
-            URLConnection yc = externalURL.openConnection();
-
-            yc.setRequestProperty("User-Agent", USER_AGENT);
-
-            BufferedReader in = new BufferedReader(
-                    new InputStreamReader(
-                            yc.getInputStream()));
-            String inputLine;
-
-            while ((inputLine = in.readLine()) != null)
-                res += "\n" + inputLine;
-            in.close();
-
-            return res;
-        } catch (IOException e) {
-        }
-        return res;
-    }
-
-
-
-
-    public static void openFileWebpage(String urlString) {
-        String fileUrlString = "file://" + urlString;
-        openWebpage(fileUrlString);
     }
 
     public static void openWebpage(String uri) {
@@ -734,32 +604,9 @@ public class Tools {
             }
             java.nio.file.Files.write(Paths.get(DataSources.LINUX_DESKTOP_FILE()), s.getBytes());
 
-            // Run the shortcut install script
-            //			String cmd = "desktop-file-install " + DataSources.LINUX_DESKTOP_FILE();
-            //			Runtime.getRuntime().exec(cmd);
-
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    public static void restartApplication() throws URISyntaxException, IOException {
-        final String javaBin = System.getProperty("java.home") + File.separator + "bin" + File.separator + "java";
-        final File currentJar = new File(Tools.class.getProtectionDomain().getCodeSource().getLocation().toURI());
-
-		/* is it a jar file? */
-        if (!currentJar.getName().endsWith(".jar"))
-            return;
-
-		/* Build command: java -jar application.jar */
-        final ArrayList<String> command = new ArrayList<String>();
-        command.add(javaBin);
-        command.add("-jar");
-        command.add(currentJar.getPath());
-
-        final ProcessBuilder builder = new ProcessBuilder(command);
-        builder.start();
-        System.exit(0);
     }
 
     public static File createAndSaveTorrent(File torrentFile, File inputFileOrDir) {
@@ -825,9 +672,6 @@ public class Tools {
         s.append("error: " + ts.errorCode() + "\n");
         s.append("progress: " + ts.getProgress() + "\n");
         s.append("Queue position: " + ts.getQueuePosition() + "\n");
-
-        //		ts.getHandle().forceRecheck();
-        //		ts.getHandle().queuePositionTop();
 
         log.info(s.toString());
     }
