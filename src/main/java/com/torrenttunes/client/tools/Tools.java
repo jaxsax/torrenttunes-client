@@ -71,9 +71,7 @@ public class Tools {
             new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz");
 
     public static void allowOnlyLocalHeaders(Request req, Response res) {
-
-
-        log.debug("req ip = " + req.ip());
+        log.debug("req ip = {}", req.ip());
 
         if (!isLocalIP(req.ip())) {
             throw new NoSuchElementException("Not a local ip, can't access");
@@ -90,8 +88,6 @@ public class Tools {
         res.header("Access-Control-Allow-Credentials", "true");
         res.header("Access-Control-Allow-Origin", origin);
         res.header("Content-Encoding", "gzip");
-
-
     }
 
 
@@ -100,25 +96,23 @@ public class Tools {
         res.header("Last-Modified", RESPONSE_HEADER_DATE_FORMAT.format(DataSources.APP_START_DATE));
     }
 
-
     public static void logRequestInfo(Request req) {
         String origin = req.headers("Origin");
         String origin2 = req.headers("origin");
         String host = req.headers("Host");
 
-
-        log.debug("request host: " + host);
-        log.debug("request origin: " + origin);
-        log.debug("request origin2: " + origin2);
-
+        log.debug("request host: {}", host);
+        log.debug("request origin: {}", origin);
+        log.debug("request origin2: {}", origin2);
 
         for (String header : req.headers()) {
-            log.debug("request header | " + header + " : " + req.headers(header));
+            log.debug("request header | {} : {}", header, req.headers(header));
         }
-        log.debug("request ip = " + req.ip());
-        log.debug("request pathInfo = " + req.pathInfo());
-        log.debug("request host = " + req.host());
-        log.debug("request url = " + req.url());
+
+        log.debug("request ip = {}", req.ip());
+        log.debug("request pathInfo = {}", req.pathInfo());
+        log.debug("request host = {}", req.host());
+        log.debug("request url = {}", req.url());
     }
 
     public static final Map<String, String> createMapFromAjaxPost(String reqBody) {
@@ -326,7 +320,7 @@ public class Tools {
 
             s = new String(encoded, Charset.defaultCharset());
         } catch (IOException e) {
-            log.error("file : " + path + " doesn't exist.");
+            log.error("file: {} doesn't exist", path);
         }
         return s;
     }
@@ -366,7 +360,7 @@ public class Tools {
 
             Tools.uninstallShortcuts();
 
-            log.info(DataSources.APP_NAME + " uninstalled successfully.");
+            log.info("{} uninstalled successfully", DataSources.APP_NAME);
             System.exit(0);
         } catch (IOException e) {
             e.printStackTrace();
@@ -379,7 +373,7 @@ public class Tools {
             JsonNode root = MAPPER.readTree(json);
             return root;
         } catch (Exception e) {
-            log.error("json: " + json);
+            log.error("json: {}", json);
             e.printStackTrace();
         }
         return null;
@@ -426,7 +420,7 @@ public class Tools {
     }
 
     public static final void httpSaveFile(String urlString, String savePath) throws IOException {
-        log.info("url string = " + urlString);
+        log.info("url string = {}", urlString);
 
         URL url = new URL(urlString);
 
@@ -447,7 +441,7 @@ public class Tools {
     }
 
     public static void openWebpage(String uri) {
-        log.info("Opening web page: " + uri);
+        log.info("Opening web page: {}", uri);
 
         try {
             DesktopApi.browse(new URI(uri));
@@ -458,7 +452,7 @@ public class Tools {
 
     public static Long folderSize(File directory) {
         long length = 0;
-        log.info("folder size directory: " + directory);
+        log.info("folder size directory: {}", directory);
         Collection<File> files = FileUtils.listFiles(directory, new String[]{".mp3"}, true);
         for (File file : files) {
             length += file.length();
@@ -655,8 +649,7 @@ public class Tools {
             bos.flush();
             bos.close();
         } catch (IOException e) {
-            log.error("Couldn't write file");
-            e.printStackTrace();
+            log.error("Couldn't write file", e);
         }
 
         return torrentFile;
