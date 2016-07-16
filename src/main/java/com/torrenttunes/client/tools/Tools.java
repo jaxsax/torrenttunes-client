@@ -40,8 +40,6 @@ import spark.Request;
 import spark.Response;
 import spark.utils.GzipUtils;
 
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.net.*;
 import java.nio.charset.Charset;
@@ -79,8 +77,7 @@ public class Tools {
     }
 
     public static Boolean isLocalIP(String ip) {
-        Boolean isLocalIP = (ip.equals("127.0.0.1") || ip.equals("0:0:0:0:0:0:0:1"));
-        return isLocalIP;
+        return (ip.equals("127.0.0.1") || ip.equals("0:0:0:0:0:0:0:1"));
     }
 
     public static void allowAllHeaders(Request req, Response res) {
@@ -115,12 +112,12 @@ public class Tools {
         log.debug("request url = {}", req.url());
     }
 
-    public static final Map<String, String> createMapFromAjaxPost(String reqBody) {
+    public static Map<String, String> createMapFromAjaxPost(String reqBody) {
         log.debug(reqBody);
-        Map<String, String> postMap = new HashMap<String, String>();
+        Map<String, String> postMap = new HashMap<>();
         String[] split = reqBody.split("&");
-        for (int i = 0; i < split.length; i++) {
-            String[] keyValue = split[i].split("=");
+        for (String aSplit : split) {
+            String[] keyValue = aSplit.split("=");
             try {
                 if (keyValue.length > 1) {
                     postMap.put(URLDecoder.decode(keyValue[0], "UTF-8"), URLDecoder.decode(keyValue[1], "UTF-8"));
@@ -137,18 +134,15 @@ public class Tools {
     }
 
     public static String sha2FileChecksum(File file) {
-        HashCode hc = null;
+        HashCode hc;
         try {
             hc = Files.hash(file, Hashing.sha256());
+            return hc.toString();
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("Error getting SHA2", e);
+            return null;
         }
-        return hc.toString();
     }
-
-
-
-
 
     public static void unzip(File zipfile, File directory) {
         try {
@@ -161,11 +155,8 @@ public class Tools {
                     file.mkdirs();
                 } else {
                     file.getParentFile().mkdirs();
-                    InputStream in = zfile.getInputStream(entry);
-                    try {
+                    try (InputStream in = zfile.getInputStream(entry)) {
                         copy(in, file);
-                    } finally {
-                        in.close();
                     }
                 }
             }
@@ -174,16 +165,13 @@ public class Tools {
 
 
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error("Error unzipping", e);
         }
     }
 
     private static void copy(InputStream in, File file) throws IOException {
-        OutputStream out = new FileOutputStream(file);
-        try {
+        try (OutputStream out = new FileOutputStream(file)) {
             copy(in, out);
-        } finally {
-            out.close();
         }
     }
 
@@ -214,7 +202,7 @@ public class Tools {
         }
     }
 
-    public static final void dbInit() {
+    public static void dbInit() {
         try {
             new DB("ttc").open("org.sqlite.JDBC", "jdbc:sqlite:" + DataSources.DB_FILE(), "root", "p@ssw0rd");
         } catch (DBException e) {
@@ -225,7 +213,7 @@ public class Tools {
 
     }
 
-    public static final void dbClose() {
+    public static void dbClose() {
         new DB("ttc").close();
     }
 
@@ -280,7 +268,7 @@ public class Tools {
 
         String postURL = DataSources.TORRENT_INFO_UPLOAD_URL;
 
-        String message = "";
+        String message;
         try {
 
             RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(30 * 1000).
@@ -370,8 +358,7 @@ public class Tools {
     public static JsonNode jsonToNode(String json) {
 
         try {
-            JsonNode root = MAPPER.readTree(json);
-            return root;
+            return MAPPER.readTree(json);
         } catch (Exception e) {
             log.error("json: {}", json);
             e.printStackTrace();
@@ -396,7 +383,7 @@ public class Tools {
         return String.format("%.1f %sB", bytes / Math.pow(unit, exp), pre);
     }
 
-    public static final String httpGetString(String url) {
+    public static String httpGetString(String url) {
         String res = "";
         try {
             URL externalURL = new URL(url);
@@ -415,11 +402,12 @@ public class Tools {
 
             return res;
         } catch (IOException e) {
+            log.error("Error in HTTP GET", e);
         }
         return res;
     }
 
-    public static final void httpSaveFile(String urlString, String savePath) throws IOException {
+    public static void httpSaveFile(String urlString, String savePath) throws IOException {
         log.info("url string = {}", urlString);
 
         URL url = new URL(urlString);
@@ -428,13 +416,11 @@ public class Tools {
 
         InputStream input = uc.getInputStream();
         byte[] buffer = new byte[4096];
-        int n = -1;
+        int n;
 
         OutputStream output = new FileOutputStream(savePath);
         while ((n = input.read(buffer)) != -1) {
-
             output.write(buffer, 0, n);
-
         }
         output.close();
 
@@ -657,16 +643,14 @@ public class Tools {
 
 
     public static void printTorrentStatus(TorrentStatus ts) {
-
-        StringBuilder s = new StringBuilder();
-        s.append("Torrent status for name: " + ts.getName() + "\n");
-        s.append("info_hash: " + ts.getInfoHash() + "\n");
-        s.append("state: " + ts.getState().toString() + "\n");
-        s.append("error: " + ts.errorCode() + "\n");
-        s.append("progress: " + ts.getProgress() + "\n");
-        s.append("Queue position: " + ts.getQueuePosition() + "\n");
-
-        log.info(s.toString());
+        String s = (
+                "Torrent status for name: " + ts.getName() + "\n") +
+                "info_hash: " + ts.getInfoHash() + "\n" +
+                "state: " + ts.getState().toString() + "\n" +
+                "error: " + ts.errorCode() + "\n" +
+                "progress: " + ts.getProgress() + "\n" +
+                "Queue position: " + ts.getQueuePosition() + "\n";
+        log.info(s);
     }
 
     public static void setContentTypeFromFileName(String pageName, Response res) {
@@ -684,7 +668,6 @@ public class Tools {
         }
     }
 
-
     public static String getIPHash() {
 
         // IP address is mixed with the users home directory,
@@ -695,11 +678,7 @@ public class Tools {
         HashFunction hf = Hashing.md5();
         HashCode hc = hf.hashString(text, Charsets.UTF_8);
 
-        String ipHash = hc.toString();
-
-        return ipHash;
+        return hc.toString();
     }
-
-
 }
 
