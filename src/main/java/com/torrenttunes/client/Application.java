@@ -70,9 +70,9 @@ public class Application {
 
     private void installApplication(Arguments arguments) {
 
-        Tools.setupDirectories();
-        Tools.copyResourcesToHomeDir(arguments.isRecopy());
-        Tools.addExternalWebServiceVarToTools();
+        ApplicationTools.setupDirectories();
+        ApplicationTools.copyResourcesToHomeDir(arguments.isRecopy());
+        ApplicationTools.addExternalWebServiceVarToTools();
 
         InitializeTables.initializeTables();
 

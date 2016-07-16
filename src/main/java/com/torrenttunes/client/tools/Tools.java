@@ -171,88 +171,9 @@ public class Tools {
         return hc.toString();
     }
 
-    public static void setupDirectories() {
-        if (!new File(DataSources.TORRENTS_DIR()).exists()) {
-            log.info("Setting up ~/." + DataSources.APP_NAME + " dirs");
-            new File(DataSources.HOME_DIR()).mkdirs();
-            new File(DataSources.TORRENTS_DIR()).mkdirs();
-            new File(DataSources.DEFAULT_MUSIC_STORAGE_PATH()).mkdirs();
 
 
-        } else {
-            log.info("Home directory already exists");
-        }
-    }
 
-    public static void copyResourcesToHomeDir(Boolean copyAnyway) {
-
-        String foundVersion = "";
-        try {
-            foundVersion = readFile(DataSources.INSTALLED_VERSION_FILE()).trim();
-        } catch (Exception e) {
-        }
-
-        if (copyAnyway ||
-                !new File(DataSources.SOURCE_CODE_HOME()).exists() ||
-                !foundVersion.equals(DataSources.VERSION)) {
-
-
-            log.info("Copying resources to  ~/." + DataSources.APP_NAME + " dirs");
-
-            String zipFile = copyJarFileToHome();
-
-            deleteTemporaryJarFile();
-
-            // Unzip it and rename it
-            Tools.unzip(new File(zipFile), new File(DataSources.SOURCE_CODE_HOME()));
-            new File(DataSources.ZIP_FILE()).renameTo(new File(DataSources.JAR_FILE()));
-
-            // Update the version number
-            Tools.writeFile(DataSources.VERSION, DataSources.INSTALLED_VERSION_FILE());
-
-            Tools.installShortcuts();
-
-            WriteMultilingualHTMLFiles.write();
-
-        } else {
-            log.info("The source directory already exists");
-        }
-    }
-
-    private static String copyJarFileToHome() {
-        String zipFile = null;
-        try {
-            if (new File(DataSources.SHADED_JAR_FILE).exists()) {
-                java.nio.file.Files.copy(Paths.get(DataSources.SHADED_JAR_FILE), Paths.get(DataSources.ZIP_FILE()),
-                        StandardCopyOption.REPLACE_EXISTING);
-                zipFile = DataSources.SHADED_JAR_FILE;
-
-            } else if (new File(DataSources.SHADED_JAR_FILE_2()).exists()) {
-                java.nio.file.Files.copy(Paths.get(DataSources.SHADED_JAR_FILE_2()), Paths.get(DataSources.ZIP_FILE()),
-                        StandardCopyOption.REPLACE_EXISTING);
-                zipFile = DataSources.SHADED_JAR_FILE_2();
-            } else {
-                log.info("you need to build the project first");
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return zipFile;
-    }
-
-    private static void deleteTemporaryJarFile() {
-        File jarFile = new File(DataSources.JAR_FILE());
-        try {
-            File currentJar = new File(Tools.class.getProtectionDomain().getCodeSource().getLocation().toURI().getPath());
-            if (!jarFile.equals(currentJar)) {
-                jarFile.delete();
-            }
-
-
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        }
-    }
 
     public static void unzip(File zipfile, File directory) {
         try {
@@ -647,35 +568,7 @@ public class Tools {
         return res;
     }
 
-    public static void addExternalWebServiceVarToTools() {
 
-        log.info("tools.js = " + DataSources.TOOLS_JS());
-        try {
-            List<String> lines = java.nio.file.Files.readAllLines(Paths.get(DataSources.TOOLS_JS()));
-
-            String interalServiceLine = "var localSparkService = '" +
-                    DataSources.WEB_SERVICE_URL + "';";
-
-            String torrentTunesServiceLine = "var torrentTunesSparkService ='" +
-                    DataSources.TORRENTTUNES_URL + "';";
-
-            String externalServiceLine = "var externalSparkService ='" +
-                    DataSources.EXTERNAL_URL + "';";
-
-            lines.set(0, interalServiceLine);
-            lines.set(1, torrentTunesServiceLine);
-            lines.set(2, externalServiceLine);
-
-
-            java.nio.file.Files.write(Paths.get(DataSources.TOOLS_JS()), lines);
-            Files.touch(new File(DataSources.TOOLS_JS()));
-
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
-    }
 
 
     public static void openFileWebpage(String urlString) {
